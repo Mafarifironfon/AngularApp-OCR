@@ -1,5 +1,6 @@
 import { Component, OnInit } from '@angular/core';
 import { AppareilService } from '../services/appareil.service';
+import { Subscription } from 'rxjs/Subscription';
 
 @Component({
   selector: 'app-appareil-view',
@@ -8,7 +9,6 @@ import { AppareilService } from '../services/appareil.service';
 })
 export class AppareilViewComponent implements OnInit {
 
-  title = 'mon-premier-projet';
   isAuth = false
   lastUpdate = new Promise((resolve, reject) => {
       const date = new Date();
@@ -17,7 +17,8 @@ export class AppareilViewComponent implements OnInit {
       }, 2000)
   });
 
-  appareils : any[];
+  appareils: any[];
+  appareilSubscription: Subscription
 
   constructor(private appareilService : AppareilService) {
       setTimeout(() => {
@@ -26,7 +27,12 @@ export class AppareilViewComponent implements OnInit {
   }
 
   ngOnInit() {
-      this.appareils = this.appareilService.appareils
+      this.appareilSubscription = this.appareilService.appareilSubject.subscribe(
+          (appareils: any[]) =>{
+              this.appareils = appareils
+          }
+      );
+      this.appareilService.emitAppareilSubject();
   }
 
   onAllumer() {
