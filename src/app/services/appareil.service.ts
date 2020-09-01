@@ -1,35 +1,28 @@
-import { Subject } from 'rxjs/Subject';
+import {Subject} from 'rxjs/Subject';
+import {HttpClient} from '@angular/common/http';
+import {Injectable} from '@angular/core';
 
+@Injectable()
 export class AppareilService {
 
-appareilSubject = new Subject<any[]>();
+    appareilSubject = new Subject < any[] > ();
 
-    private appareils = [
-        {
-            id: 1,
-            name: "Machine à laver",
-            status: "éteint"
-        }, {
-            id: 2,
-            name: "Television",
-            status: "Allumé"
-        }, {
-            id: 3,
-            name: "Frigo",
-            status: "éteint"
-        }
-    ]
+    private appareils = []
 
-    emitAppareilSubject(){
-        this.appareilSubject.next(this.appareils.slice());
+    constructor(private httpClient : HttpClient) {}
+
+    emitAppareilSubject() {
+        this
+            .appareilSubject
+            .next(this.appareils.slice());
     }
 
-    getAppareilById(id: Number){
-        const appareil = this.appareils.find(
-            (appareilObject) => {
+    getAppareilById(id : Number) {
+        const appareil = this
+            .appareils
+            .find((appareilObject) => {
                 return appareilObject.id === id
-            }
-        )
+            })
         return appareil;
     }
 
@@ -48,16 +41,16 @@ appareilSubject = new Subject<any[]>();
     }
 
     switchOnOne(index : number) {
-        this.appareils[index].status='Allumé'
+        this.appareils[index].status = 'Allumé'
         this.emitAppareilSubject()
     }
 
     switchOffOne(index : number) {
-        this.appareils[index].status='éteint'
+        this.appareils[index].status = 'éteint'
         this.emitAppareilSubject()
     }
 
-    addAppareil(name: string, status: string){
+    addAppareil(name : string, status : string) {
         const appareilObject = {
             id: 0,
             name: '',
@@ -66,8 +59,35 @@ appareilSubject = new Subject<any[]>();
 
         appareilObject.name = name
         appareilObject.status = status
-        appareilObject.id = this.appareils[(this.appareils.length -1)].id + 1
-        this.appareils.push(appareilObject)
+        appareilObject.id = this.appareils[(this.appareils.length - 1)].id + 1
+        this
+            .appareils
+            .push(appareilObject)
         this.emitAppareilSubject
     }
+
+    saveAppareilsToServer() {
+        this
+            .httpClient
+            .put('https://http-client-demo-ba372.firebaseio.com/appareils.json', this.appareils)
+            .subscribe(() => {
+                console.log('Enregistrement terminé')
+            }, () => {
+                console.log('Erreur de sauvegarde !' + console.error());
+
+            })
+    }
+
+    getAppareilsFromServer() {
+        this.httpClient.get<any[]>('https://http-client-demo-ba372.firebaseio.com/appareils.json').subscribe(
+            (Response) => {
+                this.appareils = Response
+                this.emitAppareilSubject();
+            },
+            () => {
+                console.log('Erreur de chargement' + console.error());
+            }
+        )
+    }
+
 }
